@@ -72,10 +72,16 @@ export interface IDateRangeInputProps extends IDatePickerBaseProps, IProps {
     format?: string;
 
     /**
-     * The error message to display when the date selected invalid.
+     * The error message to display when the selected date is invalid.
      * @default "Invalid date"
      */
     invalidDateMessage?: string;
+
+    /**
+     * The error message to display when the selected end date is invalid.
+     * @default "Invalid date"
+     */
+    invalidEndDateMessage?: string;
 
     /**
      * Called when the user selects a day.
@@ -152,6 +158,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
         disabled: false,
         format: "YYYY-MM-DD",
         invalidDateMessage: "Invalid date",
+        invalidEndDateMessage: "Invalid end date",
         maxDate: getDefaultMaxDate(),
         minDate: getDefaultMinDate(),
         openOnFocus: true,
@@ -220,7 +227,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
         const endDateString = (this.state.isEndDateInputFocused)
             ? this.state.endDateValueString
             : (endDateValue.isBefore(startDateValue) // also need to consider what the last field edited was
-                ? "Invalid end date"
+                ? this.props.invalidEndDateMessage
                 : this.getDateStringForDisplay(this.state.endDateValue));
 
         // Placeholders
