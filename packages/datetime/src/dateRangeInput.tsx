@@ -286,7 +286,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                 onClose={this.handleClosePopover}
                 popoverClassName={DateClasses.DATERANGEINPUT_POPOVER}
                 position={Position.BOTTOM_LEFT}
-                // useSmartArrowPositioning={false} // TODO: move the arrow based on which field is focused?
+                useSmartArrowPositioning={false}
             >
                 <div className={Classes.CONTROL_GROUP}>
                     <input
