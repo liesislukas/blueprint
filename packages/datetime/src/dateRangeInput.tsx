@@ -266,9 +266,10 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
         // stock input group, so we have to get creative field.
         const triggerElement = (
             <div className={`${DateClasses.DATERANGEINPUT_TRIGGER} pt-input-group`}>
-                <div className="pt-input">
+                <div className={classNames(Classes.INPUT, { [Classes.DISABLED]: (this.props.disabled) })}>
                     <Button
                         className="pt-minimal pt-icon-calendar"
+                        disabled={this.props.disabled}
                         intent={Intent.PRIMARY}
                         onClick={this.handleIconClick}
                     />
