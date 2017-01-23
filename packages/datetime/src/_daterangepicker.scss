@@ -68,6 +68,10 @@ Styleguide components.datetime.daterangepicker.js
     background-color: $light-gray4;
   }
 
+  .DayPicker-Day--outside {
+    visibility: hidden;
+  }
+
   // very long selectors ahead!
   // stylelint-disable max-line-length
 
