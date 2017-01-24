@@ -24,6 +24,7 @@ import {
 import * as DateClasses from "./common/classes";
 import {
     DateRange,
+    DateRangeBoundary,
     fromDateRangeToMomentArray,
     fromDateToMoment,
     fromMomentToDate,
@@ -51,6 +52,12 @@ export interface IDateRangeInputProps extends IDatePickerBaseProps, IProps {
      * when only one of the start date or end date is selected.
      */
     allowUnboundedDateRange?: boolean;
+
+    /**
+     * Whether the calendar popover should close when a date range is selected.
+     * @default true
+     */
+    closeOnSelection?: boolean;
 
     /**
      * Whether the component should be enabled or disabled.
@@ -149,12 +156,17 @@ export interface IDateRangeInputState {
     isEndDateInputFocused?: boolean;
     endDateValue?: moment.Moment;
     endDateValueString?: string;
+
+    boundaryToModify?: DateRangeBoundary;
+
+    isHovering?: boolean;
 }
 
 export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDateRangeInputState> {
     public static defaultProps: IDateRangeInputProps = {
         allowSingleDayRange: false,
         allowUnboundedDateRange: false,
+        closeOnSelection: true,
         disabled: false,
         format: "YYYY-MM-DD",
         invalidDateMessage: "Invalid date",
@@ -206,25 +218,28 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
     }
 
     public render() {
+        console.log("--");
+
         const { format } = this.props;
+        const { isStartDateInputFocused, isEndDateInputFocused } = this.state;
 
         // Date values
 
-        const startDateValue = (this.state.isStartDateInputFocused)
+        const startDateValue = (isStartDateInputFocused)
             ? moment(this.state.startDateValueString, format)
             : this.state.startDateValue;
 
-        const endDateValue = (this.state.isEndDateInputFocused)
+        const endDateValue = (isEndDateInputFocused)
             ? moment(this.state.endDateValueString, format)
             : this.state.endDateValue;
 
         // Date strings
 
-        const startDateString = (this.state.isStartDateInputFocused)
+        const startDateString = (isStartDateInputFocused)
             ? this.state.startDateValueString
             : this.getDateStringForDisplay(this.state.startDateValue);
 
-        const endDateString = (this.state.isEndDateInputFocused)
+        const endDateString = (isEndDateInputFocused)
             ? this.state.endDateValueString
             : (endDateValue.isBefore(startDateValue) // also need to consider what the last field edited was
                 ? this.props.invalidEndDateMessage
@@ -243,7 +258,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
             !(this.isDateValidAndInRange(startDateValue) || this.isNull(startDateValue) || startDateString === "");
         const isEndDateInputInErrorState = (
             !(this.isDateValidAndInRange(endDateValue) || this.isNull(endDateValue) || endDateString === "")
-            || (this.state.isEndDateInputFocused && doesStartDateExceedEndDate))
+            || (isEndDateInputFocused && doesStartDateExceedEndDate))
             || endDateValue.isBefore(startDateValue);
 
         const startDateInputClasses = classNames(Classes.INPUT, DateClasses.DATERANGEINPUT_FIELD, {
@@ -260,7 +275,10 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                 allowSingleDayRange={this.props.allowSingleDayRange}
                 maxDate={this.props.maxDate || undefined}
                 minDate={this.props.minDate || undefined}
+                boundaryToModify={this.state.boundaryToModify}
                 onChange={this.handleDateRangeChange}
+                onDayMouseEnter={this.handleDayMouseEnter}
+                onDayMouseLeave={this.handleDayMouseLeave}
                 shortcuts={this.props.shortcuts}
                 value={this.getCurrentDateRange()}
             />
@@ -360,7 +378,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
         }
     }
 
-    private getDateStringForDisplay = (value: moment.Moment) => {
+    private getDateStringForDisplay = (value: Date | moment.Moment) => {
         if (this.isNull(value)) {
             return "";
         } else if (!value.isValid()) {
@@ -414,6 +432,37 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
 
     // Callback handlers
 
+    private handleDayMouseEnter = (day: Date) => {
+        const { startDateValue, endDateValue } = this.state;
+
+        const dayValue = fromDateToMoment(day);
+        const dayValueString = this.getDateStringForDisplay(dayValue);
+
+        if (!this.isNull(startDateValue) && this.isNull(endDateValue)) {
+            if (dayValue.isBefore(startDateValue)) {
+                // move the current start date to the end-date field
+                this.setState({
+                    endDateValueString: this.getDateStringForDisplay(startDateValue),
+                    isEndDateInputFocused: false,
+                    isStartDateInputFocused: true,
+                    startDateValueString: dayValueString,
+                });
+            } else {
+                this.setState({
+                    endDateValueString: dayValueString,
+                    isEndDateInputFocused: true,
+                    isStartDateInputFocused: false,
+                    startDateValueString: null,
+                });
+            }
+        }
+    }
+
+    private handleDayMouseLeave = () => {
+        // TODO
+        return;
+    }
+
     private handleIconClick = (e: React.SyntheticEvent<HTMLElement>) => {
         if (this.state.isOpen) {
             if (this.startDateInputRef != null) {
@@ -435,35 +484,53 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
     }
 
     private handleStartDateInputFocus = (e: React.FormEvent<HTMLInputElement>) => {
-        this.handleGenericInputFocus(e, this.state.startDateValue, "startDateValueString", "isStartDateInputFocused");
+        console.log("handleStartDateInputFocus");
+        const value = this.state.startDateValue;
+        const valueStringKey = "startDateValueString";
+        const focusStateKey = "isStartDateInputFocused";
+        const boundaryToModify = DateRangeBoundary.START;
+        this.handleGenericInputFocus(e, value, valueStringKey, focusStateKey, boundaryToModify);
     }
 
     private handleEndDateInputFocus = (e: React.FormEvent<HTMLInputElement>) => {
-        this.handleGenericInputFocus(e, this.state.endDateValue, "endDateValueString", "isEndDateInputFocused");
+        console.log("handleEndDateInputFocus");
+        const value = this.state.endDateValue;
+        const valueStringKey = "endDateValueString";
+        const focusStateKey = "isEndDateInputFocused";
+        const boundaryToModify = DateRangeBoundary.END;
+        this.handleGenericInputFocus(e, value, valueStringKey, focusStateKey, boundaryToModify);
     }
 
     private handleStartDateInputBlur = () => {
+        console.log("handleStartDateInputBlur");
         const valueString = this.state.startDateValueString;
         this.handleGenericInputBlur(valueString, "startDateValue", "startDateValueString", "isStartDateInputFocused");
     }
 
     private handleEndDateInputBlur = () => {
+        console.log("handleEndDateInputBlur");
         const valueString = this.state.endDateValueString;
         this.handleGenericInputBlur(valueString, "endDateValue", "endDateValueString", "isEndDateInputFocused");
     }
 
     private handleStartDateInputChange = (e: React.SyntheticEvent<HTMLInputElement>) => {
+        console.log("handleStartDateInputChange");
         const valueString = (e.target as HTMLInputElement).value;
         this.handleGenericInputChange(valueString, "startDateValue", "startDateValueString");
     }
 
     private handleEndDateInputChange = (e: React.SyntheticEvent<HTMLInputElement>) => {
+        console.log("handleEndDateInputChange");
         const valueString = (e.target as HTMLInputElement).value;
         this.handleGenericInputChange(valueString, "endDateValue", "endDateValueString");
     }
 
     private handleGenericInputFocus =
-        (e: React.FormEvent<HTMLInputElement>, value: moment.Moment, valueStringKey: string, focusStateKey: string) => {
+        (e: React.FormEvent<HTMLInputElement>,
+         value: moment.Moment,
+         valueStringKey: string,
+         focusStateKey: string,
+         boundaryToModify: DateRangeBoundary) => {
 
         if (this.props.selectAllOnFocus) {
             e.currentTarget.select();
@@ -474,9 +541,9 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
             : value.format(this.props.format);
 
         if (this.props.openOnFocus) {
-            this.setState({ [focusStateKey]: true, [valueStringKey]: valueString, isOpen: true });
+            this.setState({ [focusStateKey]: true, [valueStringKey]: valueString, isOpen: true, boundaryToModify });
         } else {
-            this.setState({ [focusStateKey]: true, [valueStringKey]: valueString });
+            this.setState({ [focusStateKey]: true, [valueStringKey]: valueString, boundaryToModify });
         }
     }
 
@@ -555,6 +622,8 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
         let isStartDateInputFocused: boolean;
         let isEndDateInputFocused: boolean;
 
+        let isOpen = true;
+
         if (startDate == null) {
             isStartDateInputFocused = true;
             isEndDateInputFocused = false;
@@ -562,16 +631,20 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
             isStartDateInputFocused = false;
             isEndDateInputFocused = true;
         } else {
-            // the date range is fully defined, so no further user input is
-            // immediately required.
+            // ensure one of the fields is always focused, otherwise we're in for a world of hurt
             isStartDateInputFocused = false;
             isEndDateInputFocused = false;
+
+            if (this.props.closeOnSelection) {
+                isOpen = false;
+            }
         }
 
         this.setState({
             endDateValue,
             endDateValueString,
             isEndDateInputFocused,
+            isOpen,
             isStartDateInputFocused,
             startDateValue,
             startDateValueString,

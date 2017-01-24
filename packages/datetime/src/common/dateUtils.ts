@@ -9,6 +9,11 @@ import * as moment from "moment";
 
 export type DateRange = [Date | undefined, Date | undefined];
 
+export enum DateRangeBoundary {
+    START,
+    END,
+}
+
 export function areEqual(date1: Date, date2: Date) {
     if (date1 == null && date2 == null) {
         return true;

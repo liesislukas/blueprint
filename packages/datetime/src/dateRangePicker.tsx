@@ -12,7 +12,7 @@ import * as DayPicker from "react-day-picker";
 
 import * as DateClasses from "./common/classes";
 import * as DateUtils from "./common/dateUtils";
-import { DateRange } from "./common/dateUtils";
+import { DateRange, DateRangeBoundary } from "./common/dateUtils";
 import * as Errors from "./common/errors";
 import { Months } from "./common/months";
 
@@ -48,12 +48,20 @@ export interface IDateRangePickerProps extends IDatePickerBaseProps, IProps {
     defaultValue?: DateRange;
 
     /**
+     * The date-range boundary that the next click should modify.
+     */
+    boundaryToModify?: DateRangeBoundary;
+
+    /**
      * Called when the user selects a day.
      * If no days are selected, it will pass `[null, null]`.
      * If a start date is selected but not an end date, it will pass `[selectedDate, null]`.
      * If both a start and end date are selected, it will pass `[startDate, endDate]`.
      */
     onChange?: (selectedDates: DateRange) => void;
+
+    onDayMouseEnter?: (day: Date) => void;
+    onDayMouseLeave?: (day: Date) => void;
 
     /**
      * Whether shortcuts to quickly select a range of dates are displayed or not.
@@ -75,6 +83,7 @@ export interface IDateRangePickerState {
     displayMonth?: number;
     displayYear?: number;
     value?: DateRange;
+    hoverValue?: DateRange;
 }
 
 export class DateRangePicker
@@ -92,16 +101,50 @@ export class DateRangePicker
     // these will get merged with the user's own
     private modifiers: IDatePickerModifiers = {
         [SELECTED_RANGE_MODIFIER]: (day) => {
-            const { value } = this.state;
-            return value[0] != null && value[1] != null && DateUtils.isDayInRange(day, value, true);
+            const { hoverValue, value } = this.state;
+            const [start, end] = value;
+
+            if (start != null && hoverValue != null && this.props.boundaryToModify === DateRangeBoundary.END) {
+                return DateUtils.isDayInRange(day, hoverValue, true);
+            // TODO: allow unbounded date range in one direction or the other?
+            // } else if (start != null && end == null) {
+            //     return start <= day;
+            } else {
+                return start != null && end != null && DateUtils.isDayInRange(day, value, true);
+            }
         },
-        [`${SELECTED_RANGE_MODIFIER}-start`]: (day) => DateUtils.areSameDay(this.state.value[0], day),
-        [`${SELECTED_RANGE_MODIFIER}-end`]: (day) => DateUtils.areSameDay(this.state.value[1], day),
+        [`${SELECTED_RANGE_MODIFIER}-start`]: (day) => {
+            const { hoverValue, value } = this.state;
+            const start = value[0];
+
+            if (start != null && hoverValue != null && this.props.boundaryToModify === DateRangeBoundary.END) {
+                const hoverStart = hoverValue[0];
+                return DateUtils.areSameDay(hoverStart, day);
+            } else {
+                return DateUtils.areSameDay(start, day);
+            }
+        },
+        [`${SELECTED_RANGE_MODIFIER}-end`]: (day) => {
+            const { hoverValue, value } = this.state;
+            const [start, end] = value;
+
+            if (start != null && hoverValue != null && this.props.boundaryToModify === DateRangeBoundary.END) {
+                const hoverEnd = hoverValue[1];
+                return DateUtils.areSameDay(hoverEnd, day);
+            } else {
+                return DateUtils.areSameDay(end, day);
+            }
+        },
     };
 
     // these will get passed directly to DayPicker
     private states = {
-        disabledDays: (day: Date) => !DateUtils.isDayInRange(day, [this.props.minDate, this.props.maxDate]),
+        disabledDays: (day: Date) => {
+            // const start = this.state.value[0];
+            const isDayInRange = DateUtils.isDayInRange(day, [this.props.minDate, this.props.maxDate]);
+            // const isDayBeforeStartDate = start != null && day < start;
+            return !isDayInRange; // || isDayBeforeStartDate;
+        },
         selectedDays: (day: Date) => {
             const [start, end] = this.state.value;
             return DateUtils.areSameDay(start, day) || DateUtils.areSameDay(end, day);
@@ -169,6 +212,8 @@ export class DateRangePicker
                     modifiers={modifiers}
                     numberOfMonths={isShowingOneMonth ? 1 : 2}
                     onDayClick={this.handleDayClick}
+                    onDayMouseEnter={this.handleDayMouseEnter}
+                    onDayMouseLeave={this.handleDayMouseLeave}
                     onMonthChange={this.handleMonthChange}
                     selectedDays={this.states.selectedDays}
                     toMonth={maxDate}
@@ -249,6 +294,22 @@ export class DateRangePicker
         );
     }
 
+    private handleDayMouseEnter =
+        (_e: React.SyntheticEvent<HTMLElement>, day: Date, _modifiers: IDatePickerDayModifiers) => {
+        const start = this.state.value[0];
+        if (start != null) {
+            const hoverValue = this.createRange(start, day);
+            this.setState({ hoverValue });
+        }
+        Utils.safeInvoke(this.props.onDayMouseEnter, day);
+    }
+
+    private handleDayMouseLeave =
+        (_e: React.SyntheticEvent<HTMLElement>, day: Date, _modifiers: IDatePickerDayModifiers) => {
+        this.setState({ hoverValue: null });
+        Utils.safeInvoke(this.props.onDayMouseLeave, day);
+    }
+
     private handleDayClick = (_e: React.SyntheticEvent<HTMLElement>, day: Date, modifiers: IDatePickerDayModifiers) => {
         if (modifiers.disabled) {
             // rerender base component to get around bug where you can navigate past bounds by clicking days
@@ -256,26 +317,117 @@ export class DateRangePicker
             return;
         }
 
+        const { allowSingleDayRange } = this.props;
+
         const [start, end] = this.state.value;
         let nextValue: DateRange;
 
-        if (start == null && end == null) {
-            nextValue = [day, null];
-        } else if (start != null && end == null) {
-            nextValue = this.createRange(day, start);
-        } else if (start == null && end != null) {
-            nextValue = this.createRange(day, end);
-        } else {
-            const isStart = DateUtils.areSameDay(start, day);
-            const isEnd = DateUtils.areSameDay(end, day);
-            if (isStart && isEnd) {
-                nextValue = [null, null];
-            } else if (isStart) {
-                nextValue = [null, end];
-            } else if (isEnd) {
-                nextValue = [start, null];
-            } else {
+        console.log("  dateRangePicker::handleDayClick", this.props.boundaryToModify, day.toString());
+        debugger;
+
+        if (this.props.boundaryToModify === DateRangeBoundary.START) {
+            if (start == null && end == null) {
                 nextValue = [day, null];
+            } else if (start != null && end == null) {
+                // provide a mechanism for deselecting the current start date
+                const nextStart = DateUtils.areSameDay(start, day) ? null : day;
+                nextValue = [nextStart, null];
+            } else if (start == null && end != null) {
+                if (DateUtils.areSameDay(day, end)) {
+                    // either set a single-day range or start a new date range at the specified day.
+                    const nextEnd = (allowSingleDayRange) ? end : null;
+                    nextValue = [day, nextEnd];
+                } else if (day > end) {
+                    // clear the end date and start a new date range as the specified day.
+                    nextValue = [day, null];
+                } else {
+                    // simply specify the start-date of the date range.
+                    nextValue = [day, end];
+                }
+            } else {
+                // both start and end are already defined
+                if (DateUtils.areSameDay(start, day)) {
+                    // either clear just the start date, or clear an existing single-day range.
+                    const nextEnd = DateUtils.areSameDay(start, end) ? null : end;
+                    nextValue = [day, nextEnd];
+                } else if (DateUtils.areSameDay(day, end)) {
+                    const nextEnd = (allowSingleDayRange) ? end : null;
+                    nextValue = [day, nextEnd];
+                } else if (day > end) {
+                    // shift the date-range forward in time to start at the new start date
+                    // const momentDay = DateUtils.fromDateToMoment(day);
+                    // const momentEnd = DateUtils.fromDateToMoment(end);
+                    // const daysToShift = momentDay.diff(start, "days");
+                    // const nextEnd = momentEnd.clone().add(daysToShift, "days").toDate();
+                    // nextValue = [day, nextEnd];
+                    nextValue = [day, null];
+                } else {
+                    // day < start
+                    nextValue = [day, end];
+                }
+            }
+        } else if (this.props.boundaryToModify === DateRangeBoundary.END) {
+            if (start == null && end == null) {
+                nextValue = [null, day];
+            } else if (start == null && end != null) {
+                // provide a mechanism for deselecting the current start date
+                const nextEnd = DateUtils.areSameDay(day, end) ? null : day;
+                nextValue = [null, nextEnd];
+            } else if (start != null && end == null) {
+                if (DateUtils.areSameDay(start, day)) {
+                    // either set a single-day range or start a new date range at the specified day.
+                    const nextStart = (allowSingleDayRange) ? start : null;
+                    nextValue = [nextStart, day];
+                } else if (day < start) {
+                    // clear the start date and create a new date range ending at the
+                    // specified day.
+
+                    // TODO: swap the dates and do fancy things
+                    // with the focus states and valueStrings in the date-picker
+                    // input
+                    nextValue = [null, day];
+                } else {
+                    // simply specify the end-date of the date range.
+                    nextValue = [start, day];
+                }
+            } else {
+                // both start and end are already defined
+                if (DateUtils.areSameDay(day, end)) {
+                    // either clear just the end date, or clear an existing single-day range.
+                    const nextStart = DateUtils.areSameDay(start, end) ? null : start;
+                    nextValue = [nextStart, null];
+                } else if (DateUtils.areSameDay(start, day)) {
+                    const nextStart = (allowSingleDayRange) ? start : null;
+                    nextValue = [nextStart, day];
+                } else if (day < start) {
+                    // shift the date-range forward in time to start at the new start date
+                    // TODO: const nextStart = new Date(start.getTime() - (end.getTime() - start.getTime()));
+                    // nextValue = [nextStart, day];
+                    nextValue = [null, day];
+                } else {
+                    // day > end
+                    nextValue = [start, day];
+                }
+            }
+        } else {
+            if (start == null && end == null) {
+                nextValue = [day, null];
+            } else if (start != null && end == null) {
+                nextValue = this.createRange(day, start);
+            } else if (start == null && end != null) {
+                nextValue = this.createRange(day, end);
+            } else {
+                const isStart = DateUtils.areSameDay(start, day);
+                const isEnd = DateUtils.areSameDay(end, day);
+                if (isStart && isEnd) {
+                    nextValue = [null, null];
+                } else if (isStart) {
+                    nextValue = [null, end];
+                } else if (isEnd) {
+                    nextValue = [start, null];
+                } else {
+                    nextValue = [day, null];
+                }
             }
         }
 
