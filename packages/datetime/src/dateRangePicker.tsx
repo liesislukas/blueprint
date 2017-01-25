@@ -21,6 +21,7 @@ import {
     combineModifiers,
     getDefaultMaxDate,
     getDefaultMinDate,
+    HOVERED_RANGE_MODIFIER,
     IDatePickerBaseProps,
     IDatePickerDayModifiers,
     IDatePickerModifiers,
@@ -100,39 +101,52 @@ export class DateRangePicker
 
     // these will get merged with the user's own
     private modifiers: IDatePickerModifiers = {
-        [SELECTED_RANGE_MODIFIER]: (day) => {
+        [SELECTED_RANGE_MODIFIER]: (day: Date) => {
+            const { value } = this.state;
+            const [selectedStart, selectedEnd] = value;
+            return selectedStart != null && selectedEnd != null && DateUtils.isDayInRange(day, value, true);
+        },
+        [`${SELECTED_RANGE_MODIFIER}-start`]: (day: Date) => {
+            const selectedStart = this.state.value[0];
+            return DateUtils.areSameDay(selectedStart, day);
+        },
+        [`${SELECTED_RANGE_MODIFIER}-end`]: (day: Date) => {
+            const selectedEnd = this.state.value[1];
+            return DateUtils.areSameDay(selectedEnd, day);
+        },
+        [HOVERED_RANGE_MODIFIER]: (day: Date) => {
             const { hoverValue, value } = this.state;
-            const [start, end] = value;
+            const selectedStart = value[0];
 
-            if (start != null && hoverValue != null && this.props.boundaryToModify === DateRangeBoundary.END) {
+            if (selectedStart != null && hoverValue != null && this.props.boundaryToModify === DateRangeBoundary.END) {
                 return DateUtils.isDayInRange(day, hoverValue, true);
+            } else {
+                return false;
+            }
             // TODO: allow unbounded date range in one direction or the other?
             // } else if (start != null && end == null) {
             //     return start <= day;
-            } else {
-                return start != null && end != null && DateUtils.isDayInRange(day, value, true);
-            }
         },
-        [`${SELECTED_RANGE_MODIFIER}-start`]: (day) => {
+        [`${HOVERED_RANGE_MODIFIER}-start`]: (day: Date) => {
             const { hoverValue, value } = this.state;
-            const start = value[0];
+            const selectedStart = value[0];
 
-            if (start != null && hoverValue != null && this.props.boundaryToModify === DateRangeBoundary.END) {
+            if (selectedStart != null && hoverValue != null && this.props.boundaryToModify === DateRangeBoundary.END) {
                 const hoverStart = hoverValue[0];
                 return DateUtils.areSameDay(hoverStart, day);
             } else {
-                return DateUtils.areSameDay(start, day);
+                return false;
             }
         },
-        [`${SELECTED_RANGE_MODIFIER}-end`]: (day) => {
+        [`${HOVERED_RANGE_MODIFIER}-end`]: (day: Date) => {
             const { hoverValue, value } = this.state;
-            const [start, end] = value;
+            const selectedStart = value[0];
 
-            if (start != null && hoverValue != null && this.props.boundaryToModify === DateRangeBoundary.END) {
+            if (selectedStart != null && hoverValue != null && this.props.boundaryToModify === DateRangeBoundary.END) {
                 const hoverEnd = hoverValue[1];
                 return DateUtils.areSameDay(hoverEnd, day);
             } else {
-                return DateUtils.areSameDay(end, day);
+                return false;
             }
         },
     };
