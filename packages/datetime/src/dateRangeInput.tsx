@@ -339,7 +339,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                         disabled={this.props.disabled}
                         onBlur={this.handleStartDateInputBlur}
                         onChange={this.handleStartDateInputChange}
-                        onClick={this.handleStartInputClick}
+                        onClick={this.handleGenericInputClick}
                         onFocus={this.handleStartDateInputFocus}
                         placeholder={startDatePlaceholder}
                         ref={this.setStartDateInputRef}
@@ -351,7 +351,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                         disabled={this.props.disabled}
                         onBlur={this.handleEndDateInputBlur}
                         onChange={this.handleEndDateInputChange}
-                        onClick={this.handleEndInputClick}
+                        onClick={this.handleGenericInputClick}
                         onFocus={this.handleEndDateInputFocus}
                         placeholder={endDatePlaceholder}
                         ref={this.setEndDateInputRef}
@@ -634,16 +634,6 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
         } else {
             this.setState({ [valueKey]: value, [valueStringKey]: valueString });
         }
-    }
-
-    private handleStartInputClick = (e: React.SyntheticEvent<HTMLInputElement>) => {
-        this.setState({ lastManuallyFocusedField: DateRangeBoundary.START });
-        this.handleGenericInputClick(e);
-    }
-
-    private handleEndInputClick = (e: React.SyntheticEvent<HTMLInputElement>) => {
-        this.setState({ lastManuallyFocusedField: DateRangeBoundary.END });
-        this.handleGenericInputClick(e);
     }
 
     private handleGenericInputClick = (e: React.SyntheticEvent<HTMLInputElement>) => {
