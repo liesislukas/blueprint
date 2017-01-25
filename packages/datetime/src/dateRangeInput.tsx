@@ -30,6 +30,7 @@ import {
     fromDateToMoment,
     fromMomentToDate,
     toDateRange,
+    toFormattedDateString,
 } from "./common/dateUtils";
 import {
     getDefaultMaxDate,
@@ -421,10 +422,10 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
     }
 
     private getStartDateInputPlaceholder = (startDateString: string, endDateString: string) => {
-        /*const { minDate } = this.props;
+        const { minDate } = this.props;
         if (this.state.isStartDateInputFocused && minDate != null) {
             return toFormattedDateString(minDate, this.props.format);
-        } else*/ if (this.props.allowUnboundedDateRange && (startDateString || endDateString)) {
+        } else if (this.props.allowUnboundedDateRange && (startDateString || endDateString)) {
             return "All before";
         } else {
             return "Start date";
@@ -432,10 +433,10 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
     }
 
     private getEndDateInputPlaceholder = (startDateString: string, endDateString: string) => {
-        /*const { maxDate } = this.props;
+        const { maxDate } = this.props;
         if (this.state.isEndDateInputFocused && maxDate != null) {
             return toFormattedDateString(maxDate, this.props.format);
-        } else*/ if (this.props.allowUnboundedDateRange && (startDateString || endDateString)) {
+        } else if (this.props.allowUnboundedDateRange && (startDateString || endDateString)) {
             return "All after";
         } else {
             return "End date";
