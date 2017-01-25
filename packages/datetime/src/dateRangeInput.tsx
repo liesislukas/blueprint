@@ -257,7 +257,9 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
         } else {
             endDateString = (isEndDateInputFocused)
                 ? endDateValueString
-                : this.getDateStringForDisplay(this.state.endDateValue);
+                : (endDateValue.isBefore(startDateValue)
+                    ? this.props.invalidEndDateMessage
+                    : this.getDateStringForDisplay(this.state.endDateValue));
         }
 
         // Placeholders
@@ -269,18 +271,28 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
 
         const doesStartDateExceedEndDate = startDateValue.isAfter(endDateValue);
 
-        const isStartDateInputInErrorState =
-            !(this.isDateValidAndInRange(startDateValue) || this.isNull(startDateValue) || startDateString === "");
-        const isEndDateInputInErrorState = (
-            !(this.isDateValidAndInRange(endDateValue) || this.isNull(endDateValue) || endDateString === "")
-            || (isEndDateInputFocused && doesStartDateExceedEndDate))
+        const isStartDateInputInErrorState = !(
+            this.isDateValidAndInRange(startDateValue)
+            || this.isNull(startDateValue)
+            || startDateString === ""
+            || startDateString === startDateHoverValueString
+        );
+
+        const isEndDateInputInErrorState =
+            !(
+                this.isDateValidAndInRange(endDateValue)
+                || this.isNull(endDateValue)
+                || endDateString === ""
+                || endDateString === endDateHoverValueString
+            )
+            || (isEndDateInputFocused && doesStartDateExceedEndDate)
             || endDateValue.isBefore(startDateValue);
 
         const startDateInputClasses = classNames(Classes.INPUT, DateClasses.DATERANGEINPUT_FIELD, {
-            "pt-intent-danger": false && isStartDateInputInErrorState,
+            "pt-intent-danger": isStartDateInputInErrorState,
         });
         const endDateInputClasses = classNames(Classes.INPUT, DateClasses.DATERANGEINPUT_FIELD, {
-            "pt-intent-danger": false && isEndDateInputInErrorState,
+            "pt-intent-danger": isEndDateInputInErrorState,
         });
 
         // null isn't handled well for minDate and maxDate in DateRangePicker,
