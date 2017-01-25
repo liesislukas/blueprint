@@ -80,12 +80,10 @@ Styleguide components.datetime.daterangepicker.js
 
   .DayPicker-Day--selected-range:not(.DayPicker-Day--outside) {
     border-radius: 0;
-    background-color: $blue3;
-    color: $white;
+    background-color: $light-gray4;
 
     &:hover {
-      background-color: $blue2;
-      color: $white;
+      background-color: $light-gray1;
     }
   }
 
