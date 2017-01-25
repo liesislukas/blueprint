@@ -352,7 +352,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                         placeholder={startDatePlaceholder}
                         ref={this.setStartDateInputRef}
                         type="text"
-                        value={startDateString}
+                        value={startDateString || ""}
                     />
                     <input
                         className={endDateInputClasses}
@@ -364,7 +364,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                         placeholder={endDatePlaceholder}
                         ref={this.setEndDateInputRef}
                         type="text"
-                        value={endDateString}
+                        value={endDateString || ""}
                     />
                     {triggerElement}
                 </div>
