@@ -141,6 +141,12 @@ export interface IDateRangeInputProps extends IDatePickerBaseProps, IProps {
     shortcuts?: boolean | IDateRangeShortcut[];
 
     /**
+     * Whether to show the icon button.
+     * @default true
+     */
+    showIcon?: boolean;
+
+    /**
      * The currently selected DateRange.
      * If this prop is present, the component acts in a controlled manner.
      */
@@ -181,6 +187,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
         popoverPosition: Position.BOTTOM_LEFT,
         selectAllOnFocus: true,
         shortcuts: true,
+        showIcon: true,
     };
 
     public displayName = "Blueprint.DateRangeInput";
@@ -315,24 +322,6 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
             />
         );
 
-        // the "trigger" element contains a button that toggles the popover on
-        // click. this button needs to be visually inside of the input group
-        // along with the start- and end-date input fields, but at the same time
-        // not contained within either input field. this means we can't use a
-        // stock input group, so we have to get creative field.
-        const triggerElement = (
-            <div className={`${DateClasses.DATERANGEINPUT_TRIGGER} pt-input-group`}>
-                <div className={classNames(Classes.INPUT, { [Classes.DISABLED]: (this.props.disabled) })}>
-                    <Button
-                        className="pt-minimal pt-icon-calendar"
-                        disabled={this.props.disabled}
-                        intent={Intent.PRIMARY}
-                        onClick={this.handleIconClick}
-                    />
-                </div>
-            </div>
-        );
-
         return (
             <Popover
                 autoFocus={false}
@@ -370,9 +359,32 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                         type="text"
                         value={endDateString || ""}
                     />
-                    {triggerElement}
+                    {this.maybeRenderIcon()}
                 </div>
             </Popover>
+        );
+    }
+
+    private maybeRenderIcon() {
+        if (!this.props.showIcon) {
+            return undefined;
+        }
+        // the icon element contains a button that toggles the popover on
+        // click. this button needs to be visually inside of the input group
+        // along with the start- and end-date input fields, but at the same time
+        // not contained within either input field. this means we can't use a
+        // stock input group, so we have to get creative field.
+        return (
+            <div className={`${DateClasses.DATERANGEINPUT_TRIGGER} pt-input-group`}>
+                <div className={classNames(Classes.INPUT, { [Classes.DISABLED]: (this.props.disabled) })}>
+                    <Button
+                        className="pt-minimal pt-icon-calendar"
+                        disabled={this.props.disabled}
+                        intent={Intent.PRIMARY}
+                        onClick={this.handleIconClick}
+                    />
+                </div>
+            </div>
         );
     }
 
