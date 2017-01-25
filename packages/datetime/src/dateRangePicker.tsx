@@ -61,6 +61,8 @@ export interface IDateRangePickerProps extends IDatePickerBaseProps, IProps {
      */
     onChange?: (selectedDates: DateRange) => void;
 
+    onHoverChange?: (hoveredDates: DateRange, hoveredDay: Date) => void;
+
     onDayMouseEnter?: (day: Date) => void;
     onDayMouseLeave?: (day: Date) => void;
 
@@ -120,19 +122,19 @@ export class DateRangePicker
             if (selectedStart == null && selectedEnd == null) {
                 return false;
             }
-            if (hoverValue == null) {
+            if (hoverValue == null || hoverValue[0] == null || hoverValue[1] == null) {
                 return false;
             }
             return DateUtils.isDayInRange(day, hoverValue, true);
         },
         [`${HOVERED_RANGE_MODIFIER}-start`]: (day: Date) => {
-            if (this.state.hoverValue == null) {
+            if (this.state.hoverValue == null || this.state.hoverValue[0] == null) {
                 return false;
             }
             return DateUtils.areSameDay(this.state.hoverValue[0], day);
         },
         [`${HOVERED_RANGE_MODIFIER}-end`]: (day: Date) => {
-            if (this.state.hoverValue == null) {
+            if (this.state.hoverValue == null || this.state.hoverValue[1] == null) {
                 return false;
             }
             return DateUtils.areSameDay(this.state.hoverValue[1], day);
@@ -311,36 +313,68 @@ export class DateRangePicker
         const [start, end] = this.state.value;
         const { boundaryToModify } = this.props;
 
-        if (start != null && end == null) {
-            if (boundaryToModify === DateRangeBoundary.END && start <= day) {
-                this.setState({ hoverValue: DateUtils.toDateRange(start, day) });
+        let hoverValue: DateRange = null;
+
+        if (start == null && end == null) {
+            if (boundaryToModify === DateRangeBoundary.START) {
+                hoverValue = [day, null];
+            } else if (boundaryToModify === DateRangeBoundary.END) {
+                hoverValue = [null, day];
             } else {
-                this.setState({ hoverValue: null });
+                // TODO
+                hoverValue = null;
+            }
+        } else if (start != null && end == null) {
+            if (boundaryToModify !== DateRangeBoundary.END) {
+                hoverValue = [day, null];
+            } else {
+                hoverValue = this.createRange(start, day);
             }
         } else if (start == null && end != null) {
-            if (boundaryToModify === DateRangeBoundary.START && day <= end) {
-                this.setState({ hoverValue: DateUtils.toDateRange(day, end) });
+            if (boundaryToModify !== DateRangeBoundary.START) {
+                hoverValue = [null, day];
             } else {
-                this.setState({ hoverValue: null });
+                hoverValue = this.createRange(day, end);
             }
         } else if (start != null && end != null) {
-            if (boundaryToModify === DateRangeBoundary.START && day <= end) {
-                const hoverStart = (day < start) ? day : start;
-                this.setState({ hoverValue: DateUtils.toDateRange(hoverStart, end) });
-            } else if (boundaryToModify === DateRangeBoundary.END && day >= start) {
-                const hoverEnd = (day > end) ? day : end;
-                this.setState({ hoverValue: DateUtils.toDateRange(start, hoverEnd) });
+            if (boundaryToModify === DateRangeBoundary.START) {
+                // if (day <= end) {
+                //     const hoverStart = (day < start) ? day : start;
+                //     hoverValue = this.createRange(hoverStart, end);
+                // } else {
+                if (day > end) {
+                    hoverValue = [day, null];
+                } else {
+                    hoverValue = this.createRange(day, end);
+                }
+                // }
+            } else if (boundaryToModify === DateRangeBoundary.END) {
+                if (day < start) {
+                    hoverValue = [null, day];
+                } else {
+                // if (day >= start) {
+                //     const hoverEnd = (day > end) ? day : end;
+                //     hoverValue = this.createRange(start, hoverEnd);
+                // } else {
+                    hoverValue = this.createRange(start, day);
+                // }
+                }
             } else {
-                this.setState({ hoverValue: null });
+                // TODO
+                hoverValue = null;
             }
         }
 
+        this.setState({ hoverValue });
+
+        Utils.safeInvoke(this.props.onHoverChange, hoverValue, day);
         Utils.safeInvoke(this.props.onDayMouseEnter, day);
     }
 
     private handleDayMouseLeave =
         (_e: React.SyntheticEvent<HTMLElement>, day: Date, _modifiers: IDatePickerDayModifiers) => {
         this.setState({ hoverValue: null });
+        Utils.safeInvoke(this.props.onHoverChange, null, null);
         Utils.safeInvoke(this.props.onDayMouseLeave, day);
     }
 
@@ -363,10 +397,14 @@ export class DateRangePicker
                 const nextStart = DateUtils.areSameDay(start, day) ? null : day;
                 nextValue = [nextStart, null];
             } else if (start == null && end != null) {
-                const nextEnd = DateUtils.areSameDay(day, end)
-                    ? (allowSingleDayRange ? end : null)
-                    : ((day > end) ? null : end);
-                nextValue = [day, nextEnd];
+                if (DateUtils.areSameDay(day, end)) {
+                    const nextEnd = allowSingleDayRange ? end : null;
+                    nextValue = [day, nextEnd];
+                } else if (day > end) {
+                    nextValue = [end, day];
+                } else {
+                    nextValue = [day, end];
+                }
             } else {
                 // both start and end are already defined
                 if (DateUtils.areSameDay(start, day)) {
@@ -390,10 +428,14 @@ export class DateRangePicker
                 const nextEnd = DateUtils.areSameDay(day, end) ? null : day;
                 nextValue = [null, nextEnd];
             } else if (start != null && end == null) {
-                const nextStart = DateUtils.areSameDay(start, day)
-                    ? (allowSingleDayRange ? start : null)
-                    : ((day < start) ? null : start);
-                nextValue = [nextStart, day];
+                if (DateUtils.areSameDay(start, day)) {
+                    const nextStart = allowSingleDayRange ? start : null;
+                    nextValue = [nextStart, day];
+                } else if (day < start) {
+                    nextValue = [day, start];
+                } else {
+                    nextValue = [start, day];
+                }
             } else {
                 // both start and end are already defined
                 if (DateUtils.areSameDay(day, end)) {

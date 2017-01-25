@@ -306,6 +306,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                 minDate={this.props.minDate || undefined}
                 boundaryToModify={this.state.boundaryToModify}
                 onChange={this.handleDateRangeChange}
+                onHoverChange={this.handleHoverChange}
                 onDayMouseEnter={this.handleDayMouseEnter}
                 onDayMouseLeave={this.handleDayMouseLeave}
                 shortcuts={this.props.shortcuts}
@@ -461,60 +462,101 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
 
     // Callback handlers
 
-    private handleDayMouseEnter = (day: Date) => {
+    private handleHoverChange = (hoveredRange: DateRange/*, hoveredDay: Date*/) => {
+        if (hoveredRange == null) {
+            this.setState({ startDateHoverValueString: null, endDateHoverValueString: null });
+        } else {
+            const [hoveredStart, hoveredEnd] = fromDateRangeToMomentArray(hoveredRange);
+            const hoveredStartString = this.getDateStringForDisplay(hoveredStart);
+            const hoveredEndString = this.getDateStringForDisplay(hoveredEnd);
+            this.setState({ startDateHoverValueString: hoveredStartString, endDateHoverValueString: hoveredEndString });
+        }
+    }
+
+    private handleDayMouseEnter = (_day: Date) => {
         const {
-            startDateValue,
-            endDateValue,
+            // startDateValue,
+            // endDateValue,
             isStartDateInputFocused,
             isEndDateInputFocused,
             mostRecentlyFocusedField,
         } = this.state;
 
-        const dayValue = fromDateToMoment(day);
-        const dayValueString = this.getDateStringForDisplay(dayValue);
+        // const dayValue = fromDateToMoment(day);
+        // const dayValueString = this.getDateStringForDisplay(dayValue);
+        // const startDateValueString = this.getDateStringForDisplay(startDateValue);
+        // const endDateValueString = this.getDateStringForDisplay(endDateValue);
 
         const isNeitherInputFocused = !isStartDateInputFocused && !isEndDateInputFocused;
 
         const shouldStartDateInputBeFocused = isNeitherInputFocused && mostRecentlyFocusedField === DateRangeBoundary.START;
         const shouldEndDateInputBeFocused = isNeitherInputFocused && mostRecentlyFocusedField === DateRangeBoundary.END;
 
+        // const isDayBeforeStartDate = dayValue.isBefore(startDateValue);
+        // const isDayAfterEndDate = dayValue.isAfter(endDateValue);
+
+        // const isStartNull = this.isNull(startDateValue);
+        // const isEndNull = this.isNull(startDateValue);
+
         // setting a hover value string to null defers to the regular value string.
-        if (this.state.isStartDateInputFocused || shouldStartDateInputBeFocused) {
-            if (endDateValue != null && dayValue.isAfter(endDateValue)) {
-                this.setState({
-                    endDateHoverValueString: "",
-                    isStartDateInputFocused: true,
-                    startDateHoverValueString: dayValueString,
-                });
-            } else {
-                this.setState({
-                    endDateHoverValueString: null,
-                    isStartDateInputFocused: true,
-                    startDateHoverValueString: dayValueString,
-                });
-            }
-        } else if (this.state.isEndDateInputFocused || shouldEndDateInputBeFocused) {
-            if (startDateValue != null && dayValue.isBefore(startDateValue)) {
-                this.setState({
-                    endDateHoverValueString: dayValueString,
-                    isEndDateInputFocused: true,
-                    startDateHoverValueString: "",
-                });
-            } else {
-                this.setState({
-                    endDateHoverValueString: dayValueString,
-                    isEndDateInputFocused: true,
-                    startDateHoverValueString: null,
-                });
-            }
+        // if (this.state.isStartDateInputFocused || shouldStartDateInputBeFocused) {
+        if (shouldStartDateInputBeFocused) {
+            this.setState({ isStartDateInputFocused: true });
+            // if (isStartNull && !isEndNull && isDayAfterEndDate) {
+            //     this.setState({
+            //         endDateHoverValueString: dayValueString,
+            //         isStartDateInputFocused: true,
+            //         startDateHoverValueString: endDateValueString,
+            //     });
+            // } else if (!isStartNull && isEndNull && isDayAfterEndDate) {
+            //     this.setState({
+            //         endDateHoverValueString: dayValueString,
+            //         isStartDateInputFocused: true,
+            //         startDateHoverValueString: endDateValueString,
+            //     });
+            // } else if (!isStartNull && !isEndNull && isDayAfterEndDate) {
+            //     this.setState({
+            //         endDateHoverValueString: "",
+            //         isStartDateInputFocused: true,
+            //         startDateHoverValueString: dayValueString,
+            //     });
+            // } else {
+            //     this.setState({
+            //         endDateHoverValueString: null,
+            //         isStartDateInputFocused: true,
+            //         startDateHoverValueString: dayValueString,
+            //     });
+            // }
+        // } else if (this.state.isEndDateInputFocused || shouldEndDateInputBeFocused) {
+        } else if (shouldEndDateInputBeFocused) {
+            this.setState({ isEndDateInputFocused: true });
+            // if (!isStartNull && isEndNull && isDayBeforeStartDate) {
+            //     this.setState({
+            //         endDateHoverValueString: startDateValueString,
+            //         isEndDateInputFocused: true,
+            //         startDateHoverValueString: dayValueString,
+            //     });
+            // } else if (!isStartNull && !isEndNull && isDayBeforeStartDate) {
+            //     this.setState({
+            //         endDateHoverValueString: dayValueString,
+            //         isEndDateInputFocused: true,
+            //         startDateHoverValueString: "",
+            //     });
+            // } else {
+            //     this.setState({
+            //         endDateHoverValueString: dayValueString,
+            //         isEndDateInputFocused: true,
+            //         startDateHoverValueString: null,
+            //     });
+            // }
         }
     }
 
     private handleDayMouseLeave = () => {
-        this.setState({
-            endDateHoverValueString: null,
-            startDateHoverValueString: null,
-        });
+        // this.setState({
+        //     endDateHoverValueString: null,
+        //     startDateHoverValueString: null,
+        // });
     }
 
     private handleIconClick = (e: React.SyntheticEvent<HTMLElement>) => {
