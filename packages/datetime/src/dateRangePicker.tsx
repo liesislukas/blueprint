@@ -311,57 +311,48 @@ export class DateRangePicker
     private handleDayMouseEnter =
         (_e: React.SyntheticEvent<HTMLElement>, day: Date, _modifiers: IDatePickerDayModifiers) => {
         const [start, end] = this.state.value;
-        const { boundaryToModify } = this.props;
+        const { allowSingleDayRange, boundaryToModify } = this.props;
 
         let hoverValue: DateRange = null;
 
         if (start == null && end == null) {
-            if (boundaryToModify === DateRangeBoundary.START) {
-                hoverValue = [day, null];
-            } else if (boundaryToModify === DateRangeBoundary.END) {
+            if (boundaryToModify === DateRangeBoundary.END) {
                 hoverValue = [null, day];
             } else {
-                // TODO
-                hoverValue = null;
+                hoverValue = [day, null];
             }
         } else if (start != null && end == null) {
-            if (boundaryToModify !== DateRangeBoundary.END) {
+            if (boundaryToModify === DateRangeBoundary.START) {
                 hoverValue = [day, null];
+            } else if (!allowSingleDayRange && DateUtils.areSameDay(start, day)) {
+                hoverValue = [null, day];
             } else {
                 hoverValue = this.createRange(start, day);
             }
         } else if (start == null && end != null) {
-            if (boundaryToModify !== DateRangeBoundary.START) {
+            if (boundaryToModify === DateRangeBoundary.END) {
                 hoverValue = [null, day];
+            } else if (!allowSingleDayRange && DateUtils.areSameDay(day, end)) {
+                hoverValue = [day, null];
             } else {
                 hoverValue = this.createRange(day, end);
             }
         } else if (start != null && end != null) {
             if (boundaryToModify === DateRangeBoundary.START) {
-                // if (day <= end) {
-                //     const hoverStart = (day < start) ? day : start;
-                //     hoverValue = this.createRange(hoverStart, end);
-                // } else {
                 if (day > end) {
                     hoverValue = [day, null];
                 } else {
                     hoverValue = this.createRange(day, end);
                 }
-                // }
             } else if (boundaryToModify === DateRangeBoundary.END) {
                 if (day < start) {
                     hoverValue = [null, day];
                 } else {
-                // if (day >= start) {
-                //     const hoverEnd = (day > end) ? day : end;
-                //     hoverValue = this.createRange(start, hoverEnd);
-                // } else {
                     hoverValue = this.createRange(start, day);
-                // }
                 }
             } else {
-                // TODO
-                hoverValue = null;
+                // default behavior is to start a new date-range selection
+                hoverValue = [day, null];
             }
         }
 
