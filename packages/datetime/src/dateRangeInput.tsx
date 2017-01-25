@@ -23,6 +23,7 @@ import {
 
 import * as DateClasses from "./common/classes";
 import {
+    areSameDay,
     DateRange,
     DateRangeBoundary,
     fromDateRangeToMomentArray,
@@ -269,8 +270,6 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
 
         // Classes
 
-        const doesStartDateExceedEndDate = startDateValue.isAfter(endDateValue);
-
         const isStartDateInputInErrorState = !(
             this.isDateValidAndInRange(startDateValue)
             || this.isNull(startDateValue)
@@ -278,6 +277,9 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
             || startDateString === startDateHoverValueString
         );
 
+        // maybe it makes more sense just to handle overlapping typed dates by null'ing the other date.
+        // that would make it consistent with the clicking interactions.
+        const isEndDaySameAsStartDay = areSameDay(startDateValue.toDate(), endDateValue.toDate());
         const isEndDateInputInErrorState =
             !(
                 this.isDateValidAndInRange(endDateValue)
@@ -285,8 +287,8 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                 || endDateString === ""
                 || endDateString === endDateHoverValueString
             )
-            || (isEndDateInputFocused && doesStartDateExceedEndDate)
-            || endDateValue.isBefore(startDateValue);
+            // TODO: ignore the lingering hour difference between these two dates.
+            || (endDateValue.isBefore(startDateValue) && !isEndDaySameAsStartDay);
 
         const startDateInputClasses = classNames(Classes.INPUT, DateClasses.DATERANGEINPUT_FIELD, {
             "pt-intent-danger": isStartDateInputInErrorState,
