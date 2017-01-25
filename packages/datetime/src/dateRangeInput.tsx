@@ -506,7 +506,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                 this.endDateInputRef.blur();
             }
         } else {
-            this.setState({ isOpen: true, lastManuallyFocusedField: DateRangeBoundary.START });
+            this.setState({ isOpen: true });
             e.stopPropagation();
             if (this.startDateInputRef != null) {
                 this.startDateInputRef.focus();
