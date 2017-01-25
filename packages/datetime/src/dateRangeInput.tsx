@@ -316,7 +316,6 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                 onChange={this.handleDateRangeChange}
                 onHoverChange={this.handleHoverChange}
                 onDayMouseEnter={this.handleDayMouseEnter}
-                onDayMouseLeave={this.handleDayMouseLeave}
                 shortcuts={this.props.shortcuts}
                 value={this.getCurrentDateRange()}
             />
@@ -475,7 +474,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
 
     // Callback handlers
 
-    private handleHoverChange = (hoveredRange: DateRange/*, hoveredDay: Date*/) => {
+    private handleHoverChange = (hoveredRange: DateRange) => {
         if (hoveredRange == null) {
             this.setState({ startDateHoverValueString: null, endDateHoverValueString: null });
         } else {
