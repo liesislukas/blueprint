@@ -647,7 +647,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
         const isValueOutOfRange = !this.dateIsInRange(value);
         const isValueStringOutOfSync = valueString !== this.getDateStringForDisplay(this.state.startDateValue);
 
-        const isInputEmpty = valueString.length === 0;
+        const isInputEmpty = valueString == null || valueString.length === 0;
         const didInputChangeToInvalidState =
             !isInputEmpty && isValueStringOutOfSync && (isValueInvalid || isValueOutOfRange);
 
