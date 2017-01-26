@@ -308,8 +308,7 @@ export class DateRangePicker
         );
     }
 
-    private handleDayMouseEnter =
-        (_e: React.SyntheticEvent<HTMLElement>, day: Date, _modifiers: IDatePickerDayModifiers) => {
+    private handleDayMouseEnter = (_e: React.SyntheticEvent<HTMLElement>, day: Date) => {
         const [start, end] = this.state.value;
         const { allowSingleDayRange, boundaryToModify } = this.props;
 
@@ -362,8 +361,7 @@ export class DateRangePicker
         Utils.safeInvoke(this.props.onDayMouseEnter, day);
     }
 
-    private handleDayMouseLeave =
-        (_e: React.SyntheticEvent<HTMLElement>, day: Date, _modifiers: IDatePickerDayModifiers) => {
+    private handleDayMouseLeave = (_e: React.SyntheticEvent<HTMLElement>, day: Date) => {
         this.setState({ hoverValue: null });
         Utils.safeInvoke(this.props.onHoverChange, null, null);
         Utils.safeInvoke(this.props.onDayMouseLeave, day);
@@ -466,6 +464,15 @@ export class DateRangePicker
         }
 
         this.handleNextState(nextValue);
+
+        // update the hover value immediately after selection, to reflect what
+        // would happen on next click. add a 0-timeout to execute this after the
+        // event queue has flushed, else it won't work.
+        // TODO: this is gross. maybe we could do this in componentDidUpdate?
+        setTimeout(() => {
+            this.handleDayMouseLeave(null, day);
+            this.handleDayMouseEnter(null, day);
+        }, 0);
     }
 
     private createRange(a: Date, b: Date): DateRange {
