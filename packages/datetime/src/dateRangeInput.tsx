@@ -505,7 +505,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                     if (doesHoverRangeStartOnSelectedStartDate) {
                         // continue editing the end date
                         this.endDateInputRef.focus();
-                    } else if (this.state.boundaryToModify === DateRangeBoundary.START) {
+                    } else {
                         // the user is hovering over an end date that precedes
                         // the selected start date, so we flip the focus state
                         this.startDateInputRef.focus();
@@ -516,7 +516,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                     if (doesHoverRangeEndOnSelectedEndDate) {
                         // continue editing the start date
                         this.startDateInputRef.focus();
-                    } else if (this.state.boundaryToModify === DateRangeBoundary.END) {
+                    } else {
                         // the user is hovering over a start date that exceeds
                         // the selected end date, so we flip the focus state
                         this.endDateInputRef.focus();
