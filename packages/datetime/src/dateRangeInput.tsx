@@ -16,6 +16,7 @@ import {
     // InputGroup,
     Intent,
     IProps,
+    Keys,
     Popover,
     Position,
     // Utils,
@@ -345,6 +346,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                         onChange={this.handleStartDateInputChange}
                         onClick={this.handleGenericInputClick}
                         onFocus={this.handleStartDateInputFocus}
+                        onKeyDown={this.handleGenericInputKeyDown}
                         placeholder={startDatePlaceholder}
                         ref={this.setStartDateInputRef}
                         type="text"
@@ -357,6 +359,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                         onChange={this.handleEndDateInputChange}
                         onClick={this.handleGenericInputClick}
                         onFocus={this.handleEndDateInputFocus}
+                        onKeyDown={this.handleGenericInputKeyDown}
                         placeholder={endDatePlaceholder}
                         ref={this.setEndDateInputRef}
                         type="text"
@@ -690,6 +693,21 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
             // TODO: Utils.safeInvoke(this.props.onChange, fromMomentToDate(value));
         } else {
             this.setState({ [valueKey]: value, [valueStringKey]: valueString });
+        }
+    }
+
+    private handleGenericInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        const isTabPressed = e.keyCode === Keys.TAB;
+        const isShiftPressed = e.shiftKey;
+
+        const willMoveFocusFromStartToEndField = this.state.isStartDateInputFocused && isTabPressed;
+        const willMoveFocusFromEndToStartField = this.state.isEndDateInputFocused && isTabPressed && isShiftPressed;
+        const willChangeFocusedField = willMoveFocusFromStartToEndField || willMoveFocusFromEndToStartField;
+
+        if (willChangeFocusedField) {
+            // this keystroke could have happened in between mouse-hover
+            // movements, so we need to explicitly override this flag
+            this.setState({ wasLastFocusChangeDueToHover: false });
         }
     }
 
