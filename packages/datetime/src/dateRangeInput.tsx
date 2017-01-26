@@ -571,7 +571,6 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
     }
 
     private handleStartDateInputFocus = (e: React.FormEvent<HTMLInputElement>) => {
-        console.log("handleStartDateInputFocus");
         const value = this.state.startDateValue;
         const valueStringKey = "startDateValueString";
         const focusStateKey = "isStartDateInputFocused";
@@ -580,7 +579,6 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
     }
 
     private handleEndDateInputFocus = (e: React.FormEvent<HTMLInputElement>) => {
-        console.log("handleEndDateInputFocus");
         const value = this.state.endDateValue;
         const valueStringKey = "endDateValueString";
         const focusStateKey = "isEndDateInputFocused";
@@ -589,25 +587,21 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
     }
 
     private handleStartDateInputBlur = () => {
-        console.log("handleStartDateInputBlur");
         const valueString = this.state.startDateValueString;
         this.handleGenericInputBlur(valueString, "startDateValue", "startDateValueString", "isStartDateInputFocused");
     }
 
     private handleEndDateInputBlur = () => {
-        console.log("handleEndDateInputBlur");
         const valueString = this.state.endDateValueString;
         this.handleGenericInputBlur(valueString, "endDateValue", "endDateValueString", "isEndDateInputFocused");
     }
 
     private handleStartDateInputChange = (e: React.SyntheticEvent<HTMLInputElement>) => {
-        console.log("handleStartDateInputChange");
         const valueString = (e.target as HTMLInputElement).value;
         this.handleGenericInputChange(valueString, "startDateValue", "startDateValueString", "startDateHoverValueString");
     }
 
     private handleEndDateInputChange = (e: React.SyntheticEvent<HTMLInputElement>) => {
-        console.log("handleEndDateInputChange");
         const valueString = (e.target as HTMLInputElement).value;
         this.handleGenericInputChange(valueString, "endDateValue", "endDateValueString", "endDateHoverValueString");
     }
