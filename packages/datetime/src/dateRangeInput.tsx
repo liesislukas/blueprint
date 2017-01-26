@@ -349,6 +349,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                         onFocus={this.handleStartDateInputFocus}
                         onKeyDown={this.handleGenericInputKeyDown}
                         placeholder={startDatePlaceholder}
+                        rightElement={this.maybeRenderStartInputClearButton()}
                         type="text"
                         value={startDateString || ""}
                     />
@@ -362,6 +363,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                         onFocus={this.handleEndDateInputFocus}
                         onKeyDown={this.handleGenericInputKeyDown}
                         placeholder={endDatePlaceholder}
+                        rightElement={this.maybeRenderEndInputClearButton()}
                         type="text"
                         value={endDateString || ""}
                     />
@@ -391,6 +393,31 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                     />
                 </div>
             </div>
+        );
+    }
+
+    private maybeRenderStartInputClearButton = () => {
+        const onClick = this.handleStartInputClearButtonClick;
+        return this.maybeRenderGenericInputClearButton(this.state.startDateValue, onClick);
+    }
+
+    private maybeRenderEndInputClearButton = () => {
+        const onClick = this.handleEndInputClearButtonClick;
+        return this.maybeRenderGenericInputClearButton(this.state.endDateValue, onClick);
+    }
+
+    private maybeRenderGenericInputClearButton =
+        (dateValue: moment.Moment, onClick: React.MouseEventHandler<HTMLElement>) => {
+
+        if (this.isNull(dateValue)) {
+            return undefined;
+        }
+        return (
+            <Button
+                className={Classes.MINIMAL}
+                iconName="small-cross"
+                onClick={onClick}
+            />
         );
     }
 
@@ -480,6 +507,20 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
     }
 
     // Callback handlers
+
+    private handleStartInputClearButtonClick = (e: React.MouseEvent<HTMLElement>) => {
+        // prevent the focused field from losing focus, and prevent the popover from closing
+        e.stopPropagation();
+        this.startDateInputRef.focus();
+        this.setState({ startDateValue: fromDateToMoment(null), startDateValueString: "" });
+    }
+
+    private handleEndInputClearButtonClick = (e: React.MouseEvent<HTMLElement>) => {
+        // prevent the focused field from losing focus, and prevent the popover from closing
+        e.stopPropagation();
+        this.startDateInputRef.focus();
+        this.setState({ endDateValue: fromDateToMoment(null), endDateValueString: "" });
+    }
 
     private handleHoverChange = (hoveredRange: DateRange) => {
         if (hoveredRange == null) {
