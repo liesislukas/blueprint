@@ -464,15 +464,6 @@ export class DateRangePicker
         }
 
         this.handleNextState(nextValue);
-
-        // update the hover value immediately after selection, to reflect what
-        // would happen on next click. add a 0-timeout to execute this after the
-        // event queue has flushed, else it won't work.
-        // TODO: this is gross. maybe we could do this in componentDidUpdate?
-        setTimeout(() => {
-            this.handleDayMouseLeave(null, day);
-            this.handleDayMouseEnter(null, day);
-        }, 0);
     }
 
     private createRange(a: Date, b: Date): DateRange {
