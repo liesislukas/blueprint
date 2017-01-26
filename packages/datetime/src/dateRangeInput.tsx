@@ -13,7 +13,7 @@ import {
     AbstractComponent,
     Button,
     Classes,
-    // InputGroup,
+    InputGroup,
     Intent,
     IProps,
     Keys,
@@ -301,10 +301,10 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
             // TODO: ignore the lingering hour difference between these two dates.
             || (endDateValue.isBefore(startDateValue) && !isEndDaySameAsStartDay);
 
-        const startDateInputClasses = classNames(Classes.INPUT, DateClasses.DATERANGEINPUT_FIELD, {
+        const startDateInputClasses = classNames(DateClasses.DATERANGEINPUT_FIELD, {
             "pt-intent-danger": isStartDateInputInErrorState,
         });
-        const endDateInputClasses = classNames(Classes.INPUT, DateClasses.DATERANGEINPUT_FIELD, {
+        const endDateInputClasses = classNames(DateClasses.DATERANGEINPUT_FIELD, {
             "pt-intent-danger": isEndDateInputInErrorState,
         });
 
@@ -339,29 +339,29 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                 useSmartArrowPositioning={false}
             >
                 <div className={Classes.CONTROL_GROUP}>
-                    <input
+                    <InputGroup
                         className={startDateInputClasses}
                         disabled={this.props.disabled}
+                        inputRef={this.setStartDateInputRef}
                         onBlur={this.handleStartDateInputBlur}
                         onChange={this.handleStartDateInputChange}
                         onClick={this.handleGenericInputClick}
                         onFocus={this.handleStartDateInputFocus}
                         onKeyDown={this.handleGenericInputKeyDown}
                         placeholder={startDatePlaceholder}
-                        ref={this.setStartDateInputRef}
                         type="text"
                         value={startDateString || ""}
                     />
-                    <input
+                    <InputGroup
                         className={endDateInputClasses}
                         disabled={this.props.disabled}
+                        inputRef={this.setEndDateInputRef}
                         onBlur={this.handleEndDateInputBlur}
                         onChange={this.handleEndDateInputChange}
                         onClick={this.handleGenericInputClick}
                         onFocus={this.handleEndDateInputFocus}
                         onKeyDown={this.handleGenericInputKeyDown}
                         placeholder={endDatePlaceholder}
-                        ref={this.setEndDateInputRef}
                         type="text"
                         value={endDateString || ""}
                     />

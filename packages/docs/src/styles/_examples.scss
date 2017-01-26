@@ -68,6 +68,10 @@ $options-margin: $pt-grid-size * 3;
   .pt-input-group + .pt-input-group {
     margin-top: $pt-grid-size * 2;
   }
+
+  .pt-control-group .pt-input-group + .pt-input-group {
+    margin-top: 0;
+  }
 }
 
 .docs-card-example {
