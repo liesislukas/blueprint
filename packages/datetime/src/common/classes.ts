@@ -21,6 +21,7 @@ export const DATERANGEINPUT = "pt-daterangeinput";
 export const DATERANGEINPUT_FIELD = "pt-daterangeinput-field";
 export const DATERANGEINPUT_TRIGGER = "pt-daterangeinput-trigger";
 export const DATERANGEINPUT_POPOVER = "pt-daterangeinput-popover";
+export const DATERANGEINPUT_ALLOWSINGLEDAYRANGE = "pt-daterangeinput-allowsingledayrange";
 
 export const DATERANGEPICKER = "pt-daterangepicker";
 export const DATERANGEPICKER_DAY_SELECTED_RANGE = "DayPicker-Day--selected-range";

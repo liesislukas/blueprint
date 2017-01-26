@@ -58,3 +58,27 @@ Styleguide components.datetime.daterangeinput
     padding: 0;
   }
 }
+
+// react-day-picker does not conform to our naming scheme
+// stylelint-disable selector-class-pattern
+
+// warning: tricky case/explanation ahead. when one input field has a selected
+// date in it, then being focused in the other input field will edit the other
+// boundary on click. this is tricky if allowSingleDayRange is disabled:
+// clicking on the same date will clear the value from the other field and put
+// it into the current field, effectively swapping the date boundary. we want
+// the hover state to show this clearly. fortunately that boils down to simply
+// tweaking some border radii.
+.pt-daterangeinput-popover:not(.pt-daterangeinput-allowsingledayrange) .pt-daterangepicker {
+  .DayPicker-Day--selected-range-end.DayPicker-Day--hovered-range-start {
+    border-top-left-radius: $pt-border-radius;
+    border-bottom-left-radius: $pt-border-radius;
+  }
+
+  .DayPicker-Day--selected-range-start.DayPicker-Day--hovered-range-end {
+    border-top-right-radius: $pt-border-radius;
+    border-bottom-right-radius: $pt-border-radius;
+  }
+}
+
+// stylelint-enable selector-class-pattern

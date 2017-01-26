@@ -228,7 +228,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
     }
 
     public render() {
-        const { format } = this.props;
+        const { allowSingleDayRange, format } = this.props;
         const {
             endDateHoverValueString,
             endDateValueString,
@@ -307,9 +307,11 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
 
         // null isn't handled well for minDate and maxDate in DateRangePicker,
         // so coerce to undefined if necessary
+        const popoverClasses = classNames({ [DateClasses.DATERANGEINPUT_ALLOWSINGLEDAYRANGE]: allowSingleDayRange });
         const popoverContent = (
             <DateRangePicker
-                allowSingleDayRange={this.props.allowSingleDayRange}
+                allowSingleDayRange={allowSingleDayRange}
+                className={popoverClasses}
                 maxDate={this.props.maxDate || undefined}
                 minDate={this.props.minDate || undefined}
                 boundaryToModify={this.state.boundaryToModify}
