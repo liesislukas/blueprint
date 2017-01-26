@@ -338,13 +338,13 @@ export class DateRangePicker
             }
         } else if (start != null && end != null) {
             if (boundaryToModify === DateRangeBoundary.START) {
-                if (day > end) {
+                if ((day > end) || (!allowSingleDayRange && DateUtils.areSameDay(day, end))) {
                     hoverValue = [day, null];
                 } else {
                     hoverValue = this.createRange(day, end);
                 }
             } else if (boundaryToModify === DateRangeBoundary.END) {
-                if (day < start) {
+                if ((day < start) || (!allowSingleDayRange && DateUtils.areSameDay(start, day))) {
                     hoverValue = [null, day];
                 } else {
                     hoverValue = this.createRange(start, day);
