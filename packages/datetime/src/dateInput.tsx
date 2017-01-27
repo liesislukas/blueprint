@@ -33,6 +33,7 @@ export interface IDateInputProps extends IDatePickerBaseProps, IProps {
     /**
      * Allows the user to clear the selection by clicking the currently selected day.
      * Passed to `DatePicker` component
+     * @default true
      */
     canClearSelection?: boolean;
 
@@ -247,7 +248,7 @@ export class DateInput extends AbstractComponent<IDateInputProps, IDateInputStat
         } else {
             this.setState({ isInputFocused: false, isOpen });
         }
-        Utils.safeInvoke(this.props.onChange, fromMomentToDate(momentDate));
+        Utils.safeInvoke(this.props.onChange, date === null ? null : fromMomentToDate(momentDate));
     }
 
     private handleIconClick = (e: React.SyntheticEvent<HTMLElement>) => {
@@ -292,6 +293,9 @@ export class DateInput extends AbstractComponent<IDateInputProps, IDateInputStat
             }
             Utils.safeInvoke(this.props.onChange, fromMomentToDate(value));
         } else {
+            if (valueString.length === 0) {
+                Utils.safeInvoke(this.props.onChange, null);
+            }
             this.setState({ valueString });
         }
     }

@@ -31,6 +31,11 @@ $menu-z-index: $row-z-index + 1 !default;
   .pt-dark & {
     background-color: $dark-table-background-color;
   }
+
+  .pt-loading {
+    @include table-skeleton();
+    color: transparent;
+  }
 }
 
 .bp-table-top-container {
@@ -118,6 +123,8 @@ $menu-z-index: $row-z-index + 1 !default;
 
 .bp-table-body-scroll-client {
   position: relative;
+  user-select: none;
+  will-change: transform; // isolate stacking context for interacive cells
 }
 
 .bp-table-body-virtual-client {

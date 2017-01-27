@@ -87,6 +87,14 @@
   @include examples-per-row(3);
 }
 
+#{section-name("Selects")} {
+  @include examples-per-row(4);
+
+  .kss-example {
+    padding-right: $pt-grid-size / 2;
+  }
+}
+
 #{section-name("Labeled static dropdown")} {
   .kss-example-wrapper {
     justify-content: initial;
@@ -260,6 +268,7 @@
   .pt-dialog {
     top: $content-padding;
     transform: translateX(50%);
+    z-index: $pt-z-index-base;
   }
 }
 
