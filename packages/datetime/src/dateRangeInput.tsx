@@ -194,8 +194,8 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
 
     public displayName = "Blueprint.DateRangeInput";
 
-    private startDateInputRef: HTMLElement = null;
-    private endDateInputRef: HTMLElement = null;
+    private startDateInputRef: HTMLInputElement = null;
+    private endDateInputRef: HTMLInputElement = null;
 
     public constructor(props: IDateRangeInputProps, context?: any) {
         super(props, context);
@@ -348,6 +348,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                         onClick={this.handleGenericInputClick}
                         onFocus={this.handleStartDateInputFocus}
                         onKeyDown={this.handleGenericInputKeyDown}
+                        onMouseDown={this.handleGenericInputMouseDown}
                         placeholder={startDatePlaceholder}
                         rightElement={this.maybeRenderStartInputClearButton()}
                         type="text"
@@ -362,6 +363,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                         onClick={this.handleGenericInputClick}
                         onFocus={this.handleEndDateInputFocus}
                         onKeyDown={this.handleGenericInputKeyDown}
+                        onMouseDown={this.handleGenericInputMouseDown}
                         placeholder={endDatePlaceholder}
                         rightElement={this.maybeRenderEndInputClearButton()}
                         type="text"
@@ -424,11 +426,11 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
 
     // Input refs
 
-    private setStartDateInputRef = (el: HTMLElement) => {
+    private setStartDateInputRef = (el: HTMLInputElement) => {
         this.startDateInputRef = el;
     }
 
-    private setEndDateInputRef = (el: HTMLElement) => {
+    private setEndDateInputRef = (el: HTMLInputElement) => {
         this.endDateInputRef = el;
     }
 
@@ -512,15 +514,36 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
     private handleStartInputClearButtonClick = (e: React.MouseEvent<HTMLElement>) => {
         // prevent the focused field from losing focus, and prevent the popover from closing
         e.stopPropagation();
-        this.startDateInputRef.focus();
-        this.setState({ startDateValue: fromDateToMoment(null), startDateValueString: "" });
+
+        // can't use this.startInputRef.focus() here, else the handle-focus
+        // callback would be invoked for the start field before we have a change
+        // the re-render with the cleared start value. that would get our focus
+        // state and our boundaryToModify out of sync.
+        this.setState({
+            isEndDateInputFocused: false,
+            isStartDateInputFocused: true,
+            startDateHoverValueString: "",
+            startDateValue: fromDateToMoment(null),
+            startDateValueString: "",
+            wasLastFocusChangeDueToHover: false,
+        });
     }
 
     private handleEndInputClearButtonClick = (e: React.MouseEvent<HTMLElement>) => {
         // prevent the focused field from losing focus, and prevent the popover from closing
         e.stopPropagation();
-        this.startDateInputRef.focus();
-        this.setState({ endDateValue: fromDateToMoment(null), endDateValueString: "" });
+
+        // invoking this.startInputRef.focus() instead wouldn't really be an
+        // issue here, but might as well update the focus state the same way in
+        // both clear-button callbacks.
+        this.setState({
+            endDateHoverValueString: "",
+            endDateValue: fromDateToMoment(null),
+            endDateValueString: "",
+            isEndDateInputFocused: false,
+            isStartDateInputFocused: true,
+            wasLastFocusChangeDueToHover: false,
+        });
     }
 
     private handleHoverChange = (hoveredRange: DateRange) => {
@@ -544,7 +567,13 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                 if (isEndNull) {
                     // this means a start date is already selected
                     const doesHoverRangeStartOnSelectedStartDate = hoveredStart.diff(selectedStart, "days") === 0;
-                    if (doesHoverRangeStartOnSelectedStartDate) {
+                    const isModifyingEndBoundary = this.state.boundaryToModify === DateRangeBoundary.END;
+
+                    // need to check the boundary-to-modify to properly handle
+                    // the case where we're hovering on the selected end date
+                    // (without this check, the focus switches to the other
+                    // field prematurely and leads to buggy behavior).
+                    if (doesHoverRangeStartOnSelectedStartDate && isModifyingEndBoundary) {
                         // continue editing the end date
                         this.endDateInputRef.focus();
                     } else {
@@ -555,7 +584,13 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                 } else {
                     // start is null
                     const doesHoverRangeEndOnSelectedEndDate = hoveredEnd.diff(selectedEnd, "days") === 0;
-                    if (doesHoverRangeEndOnSelectedEndDate) {
+                    const isModifyingStartBoundary = this.state.boundaryToModify === DateRangeBoundary.START;
+
+                    // need to check the boundary-to-modify to properly handle
+                    // the case where we're hovering on the selected end date
+                    // (without this check, the focus switches to the other
+                    // field prematurely and leads to buggy behavior)
+                    if (doesHoverRangeEndOnSelectedEndDate && isModifyingStartBoundary) {
                         // continue editing the start date
                         this.startDateInputRef.focus();
                     } else {
@@ -751,6 +786,13 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
             // movements, so we need to explicitly override this flag
             this.setState({ wasLastFocusChangeDueToHover: false });
         }
+    }
+
+    private handleGenericInputMouseDown = () => {
+        // if the user clicks explicitly in a field, we need to clear this flag.
+        // since onClick is fired after onFocus, we need to use onMouseDown,
+        // which fires before onFocus.
+        this.setState({ wasLastFocusChangeDueToHover: false });
     }
 
     private handleGenericInputClick = (e: React.SyntheticEvent<HTMLInputElement>) => {
