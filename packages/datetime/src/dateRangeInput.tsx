@@ -561,6 +561,9 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
             const isStartNull = this.isNull(selectedStart);
             const isEndNull = this.isNull(selectedEnd);
 
+            let isStartDateInputFocused: boolean;
+            let isEndDateInputFocused: boolean;
+
             const isExactlyOneBoundarySelected = (!isStartNull && isEndNull) || (isStartNull && !isEndNull);
 
             if (isExactlyOneBoundarySelected) {
@@ -575,11 +578,13 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                     // field prematurely and leads to buggy behavior).
                     if (doesHoverRangeStartOnSelectedStartDate && isModifyingEndBoundary) {
                         // continue editing the end date
-                        this.endDateInputRef.focus();
+                        isStartDateInputFocused = false;
+                        isEndDateInputFocused = true;
                     } else {
                         // the user is hovering over an end date that precedes
                         // the selected start date, so we flip the focus state
-                        this.startDateInputRef.focus();
+                        isStartDateInputFocused = true;
+                        isEndDateInputFocused = false;
                     }
                 } else {
                     // start is null
@@ -592,17 +597,21 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                     // field prematurely and leads to buggy behavior)
                     if (doesHoverRangeEndOnSelectedEndDate && isModifyingStartBoundary) {
                         // continue editing the start date
-                        this.startDateInputRef.focus();
+                        isStartDateInputFocused = true;
+                        isEndDateInputFocused = false;
                     } else {
                         // the user is hovering over a start date that exceeds
                         // the selected end date, so we flip the focus state
-                        this.endDateInputRef.focus();
+                        isStartDateInputFocused = false;
+                        isEndDateInputFocused = true;
                     }
                 }
             }
 
             this.setState({
                 endDateHoverValueString: hoveredEndString,
+                isEndDateInputFocused,
+                isStartDateInputFocused,
                 startDateHoverValueString: hoveredStartString,
                 wasLastFocusChangeDueToHover: true,
             });
