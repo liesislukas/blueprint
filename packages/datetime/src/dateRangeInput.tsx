@@ -417,6 +417,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
                 className={Classes.MINIMAL}
                 iconName="small-cross"
                 onClick={onClick}
+                tabIndex={-1}
             />
         );
     }
