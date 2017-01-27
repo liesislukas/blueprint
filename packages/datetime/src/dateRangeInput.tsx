@@ -692,6 +692,7 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
          valueStringKey: string,
          focusStateKey: string,
          boundaryToModify: DateRangeBoundary) => {
+        console.log("  handleGenericInputFocus");
 
         if (this.props.selectAllOnFocus) {
             e.currentTarget.select();
@@ -786,14 +787,48 @@ export class DateRangeInput extends AbstractComponent<IDateRangeInputProps, IDat
         const isTabPressed = e.keyCode === Keys.TAB;
         const isShiftPressed = e.shiftKey;
 
-        const willMoveFocusFromStartToEndField = this.state.isStartDateInputFocused && isTabPressed;
-        const willMoveFocusFromEndToStartField = this.state.isEndDateInputFocused && isTabPressed && isShiftPressed;
-        const willChangeFocusedField = willMoveFocusFromStartToEndField || willMoveFocusFromEndToStartField;
+        // onFocus is triggered before onKeyDown, so if tab was pressed, we
+        // might be in a state where neither field is focused, because we're in
+        // the middle of the focus exchange. thus, we may need to refer to the
+        // most recently focused field, rather than a non-existent currently
+        // focused field.
+        const isStartDateInputFocused = (this.state.isStartDateInputFocused == null)
+            ? this.state.mostRecentlyFocusedField === DateRangeBoundary.START
+            : this.state.isStartDateInputFocused;
 
-        if (willChangeFocusedField) {
-            // this keystroke could have happened in between mouse-hover
-            // movements, so we need to explicitly override this flag
-            this.setState({ wasLastFocusChangeDueToHover: false });
+        const isEndDateInputFocused = (this.state.isEndDateInputFocused == null)
+            ? this.state.mostRecentlyFocusedField === DateRangeBoundary.END
+            : this.state.isEndDateInputFocused;
+
+        const willMoveFocusFromStartToEndField = isStartDateInputFocused && isTabPressed;
+        const willMoveFocusFromEndToStartField = isEndDateInputFocused && isTabPressed && isShiftPressed;
+
+        // note that we also immediately clear the hovered value from the
+        // previously focused field and display it in the newly focused field.
+        if (willMoveFocusFromStartToEndField) {
+            this.setState({
+                endDateHoverValueString: this.state.startDateHoverValueString,
+                isEndDateInputFocused: true,
+                isStartDateInputFocused: false,
+                startDateHoverValueString: "",
+                wasLastFocusChangeDueToHover: false,
+            });
+
+            // let the component handle focus change to avoid race conditions
+            // with tabbing and date-hovering
+            e.preventDefault();
+        } else if (willMoveFocusFromEndToStartField) {
+            this.setState({
+                endDateHoverValueString: "",
+                isEndDateInputFocused: false,
+                isStartDateInputFocused: true,
+                startDateHoverValueString: this.state.endDateHoverValueString,
+                wasLastFocusChangeDueToHover: false,
+            });
+
+            // let the component handle focus change to avoid race conditions
+            // with tabbing and date-hovering
+            e.preventDefault();
         }
     }
 
